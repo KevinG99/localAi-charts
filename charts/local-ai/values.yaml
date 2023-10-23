@@ -6,15 +6,9 @@ deployment:
     threads: 4
     context_size: 512
   modelsPath: "/models"
-  download_model:
-    # To use cloud provided (eg AWS) image, provide it like: 1234356789.dkr.ecr.us-REGION-X.amazonaws.com/busybox
-    image: busybox
-  prompt_templates:
-    # To use cloud provided (eg AWS) image, provide it like: 1234356789.dkr.ecr.us-REGION-X.amazonaws.com/busybox
-    image: busybox
   pullPolicy: IfNotPresent
   imagePullSecrets: []
-    # - name: secret-names
+  # - name: secret-names
 
 resources:
   {}
@@ -27,17 +21,16 @@ resources:
   #   memory: 128Mi
   # requests:
   #   cpu: 100m
-  #   memory: 128Mi
+#   memory: 128Mi
 
 # Prompt templates to include
 # Note: the keys of this map will be the names of the prompt template files
 promptTemplates:
-  {}
-  # ggml-gpt4all-j.tmpl: |
-  #   The prompt below is a question to answer, a task to complete, or a conversation to respond to; decide which and write an appropriate response.
-  #   ### Prompt:
-  #   {{.Input}}
-  #   ### Response:
+  ggml-gpt4all-j.tmpl: |
+    The prompt below is a question to answer, a task to complete, or a conversation to respond to; decide which and write an appropriate response.
+    ### Prompt:
+    {{.Input}}
+    ### Response:
 
 # Models to download at runtime
 models:
@@ -47,7 +40,7 @@ models:
   # The list of URLs to download models from
   # Note: the name of the file will be the name of the loaded model
   list:
-  #  - url: "https://gpt4all.io/models/ggml-gpt4all-j.bin"
+    - url: "https://gpt4all.io/models/ggml-gpt4all-j.bin"
       # basicAuth: base64EncodedCredentials
 
   # Persistent storage for models and prompt templates.
@@ -56,7 +49,7 @@ models:
   # storage is used.
   persistence:
     pvc:
-      enabled: false
+      enabled: true
       size: 6Gi
       accessModes:
         - ReadWriteOnce
@@ -73,25 +66,27 @@ models:
 service:
   type: ClusterIP
   # If deferring to an internal only load balancer
-  # externalTrafficPolicy: Local
+  externalTrafficPolicy: Local
   port: 80
   annotations: {}
   # If using an AWS load balancer, you'll need to override the default 60s load balancer idle timeout
   # service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "1200"
 
 ingress:
-  enabled: false
+  enabled: true
   className: ""
   annotations:
-    {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
   hosts:
-    - host: chart-example.local
+    - host: localai.k8s-dev.kevingrote.com
       paths:
         - path: /
           pathType: ImplementationSpecific
-  tls: []
+  tls:
+    - secretName: localai-tls-secret
+      hosts:
+        - localai.k8s-dev.kevingrote.com
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
@@ -104,4 +99,3 @@ affinity: {}
 
 image:
   pullPolicy: IfNotPresent
-
